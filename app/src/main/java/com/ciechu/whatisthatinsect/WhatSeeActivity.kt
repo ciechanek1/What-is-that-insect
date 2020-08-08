@@ -21,6 +21,8 @@ import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+//przyy pierwszym odpalenie do otrzymaniu permission i tak wywala apke
+
 
 // 1. trzeba uzyskać pozwolenie na kamere. Jest to high Risk wiec musi dac allow
 // 2. Odpalamy kamera. Najlepiej uzyć do tego CameraX
@@ -58,8 +60,8 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         setContentView(R.layout.activity_main)
 
         imageDetectorViewModel = ViewModelProvider(this)[ImageDetectorViewModel::class.java]
-        imageDetectorViewModel.objectLabel.observe(this, Observer {
-            text -> text?.let{ what_is_that_insect_tv.text = it }   //nasz obserwer z livedata
+        imageDetectorViewModel.objectLabel.observe(this, Observer { text ->
+            text?.let { what_is_that_insect_tv.text = it }   //nasz obserwer z livedata
         })
 
         val localModel = LocalModel.Builder()
