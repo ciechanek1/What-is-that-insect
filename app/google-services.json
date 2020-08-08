@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "28506444601",
+    "firebase_url": "https://whatisthatinsect.firebaseio.com",
+    "project_id": "whatisthatinsect",
+    "storage_bucket": "whatisthatinsect.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:28506444601:android:5315c9e9d0cec7570ecee8",
+        "android_client_info": {
+          "package_name": "com.ciechu.whatisthatinsect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "28506444601-ju51m3ubeptumicf0fsirb71k4cvtcf6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmyRaWVaCHQQtt2my0aZjrs3N_QbGEEpY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "28506444601-ju51m3ubeptumicf0fsirb71k4cvtcf6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
