@@ -29,10 +29,11 @@
     </androidx.camera.view.PreviewView>
 
     <Button
-        android:id="@+id/camera_caputree_bt"
+        android:id="@+id/camera_capture_bt"
         android:layout_width="135dp"
         android:layout_height="wrap_content"
         android:text="Analyze"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

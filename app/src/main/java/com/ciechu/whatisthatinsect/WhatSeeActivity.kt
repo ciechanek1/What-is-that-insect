@@ -59,6 +59,8 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        captureImage()
+
         imageDetectorViewModel = ViewModelProvider(this)[ImageDetectorViewModel::class.java]
         imageDetectorViewModel.objectLabel.observe(this, Observer { text ->
             text?.let { what_is_that_insect_tv.text = it }   //nasz obserwer z livedata
@@ -85,7 +87,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
         }
 
-        camera_caputree_bt.setOnClickListener { // pobawic sie tym buttonem
+        /*camera_capture_bt.setOnClickListener { // pobawic sie tym buttonem
             if (!imageDetectorViewModel.isAnalysing){
                 imageAnalysis?.let {
                     imageDetectorViewModel.isAnalysing = true   // jezeli detektor Nie analizuje to przestaw na analizowanie
@@ -96,6 +98,19 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
                 imageAnalysis?.clearAnalyzer()
                 imageDetectorViewModel.isAnalysing = false // jezeli analizuje to go wyczysc i przestan
             }
+        }*/
+    }
+
+    private fun captureImage(){
+        if (!imageDetectorViewModel.isAnalysing){
+            imageAnalysis?.let {
+                imageDetectorViewModel.isAnalysing = true   // jezeli detektor Nie analizuje to przestaw na analizowanie
+
+                it.setAnalyzer(cameraExecutor, this)
+            }
+        } else {
+            imageAnalysis?.clearAnalyzer()
+            imageDetectorViewModel.isAnalysing = false // jezeli analizuje to go wyczysc i przestan
         }
     }
 
