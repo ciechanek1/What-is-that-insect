@@ -14,6 +14,7 @@
         android:textAlignment="center"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.279"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -23,19 +24,11 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/what_is_that_insect_tv" >
+        app:layout_constraintTop_toBottomOf="@+id/what_is_that_insect_tv"
+        app:layout_constraintVertical_bias="0.0">
 
     </androidx.camera.view.PreviewView>
-
-    <Button
-        android:id="@+id/camera_capture_bt"
-        android:layout_width="135dp"
-        android:layout_height="wrap_content"
-        android:text="Analyze"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

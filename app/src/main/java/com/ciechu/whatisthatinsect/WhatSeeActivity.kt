@@ -4,15 +4,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Handler
 import android.util.Log
-import android.widget.Toast
+import android.view.Menu
+import android.view.MenuItem
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.label.ImageLabeler
@@ -23,36 +26,23 @@ import org.koin.android.ext.android.inject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-//przyy pierwszym odpalenie do otrzymaniu permission i tak wywala apke
-
-
-// 1. trzeba uzyskać pozwolenie na kamere. Jest to high Risk wiec musi dac allow
-// 2. Odpalamy kamera. Najlepiej uzyć do tego CameraX
-// 3. Ustawić obiekt nasłuchujący. Bez robienia zdjecią aby analizowało ostatnią klatkę
-// 4. Ustawić model do oznaczania zdjęć TensorFlow
-// 5. Wyświetlić dane (ViewModel)
-// 6. zamknać zdjęcie. Bez tego zrobi sie za duzo elementów nasłuchujących
-
-// w activity_main preView sluzy do pokazywania widoku z kamerki
-// nasz button opala nam analizowanie i do zatrzymuje jednosczesnie
-
 class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
 
     private val imageDetectorViewModel: ImageDetectorViewModel by inject()
 
     // Tag for the [Log]
-    private val TAG = "CameraLabeling" //wykorzystywane przy Log w failureListener
+    private val TAG = "CameraLabeling"
 
-    //  This is an arbitrary number we are using to keep track of the permission
-// request. Where an app has multiple context for requesting permission,
-// this can help differentiate the different contexts.
+     /*This is an arbitrary number we are using to keep track of the permission
+     request. Where an app has multiple context for requesting permission,
+     this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
     private val permissions =
-        arrayOf(Manifest.permission.CAMERA) //tablica zawierająca poczbene permission
+        arrayOf(Manifest.permission.CAMERA)
 
-    private lateinit var cameraProvider: ProcessCameraProvider //Dostawca kamery procesowej
+    private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var labeler: ImageLabeler // coś z lifecycle observer
+    private lateinit var labeler: ImageLabeler
 
     private var imageCapture: ImageCapture? = null
     private var preview: Preview? = null
@@ -64,13 +54,13 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         setContentView(R.layout.activity_main)
 
         val localModel = LocalModel.Builder()
-            .setAssetFilePath("lite-model_aiy_vision_classifier_insects_V1_3.tflite") // dajesz całą nazwę pliku z assets
+            .setAssetFilePath("lite-model_aiy_vision_classifier_insects_V1_3.tflite")
             .build()
 
         val customImageLabelerOptions =
-            CustomImageLabelerOptions.Builder(localModel) //Niestandardowe opcje etykiet obrazów
-                .setMaxResultCount(4) // maxymalna liczba wyników (wymaga testów)(default 5)
-                .setConfidenceThreshold(0.70f) //Pobiera próg ufności etykiet do wykrycia. (chyba minimalna dokładność i max to 1.00)(default 0.55)
+            CustomImageLabelerOptions.Builder(localModel)
+                .setMaxResultCount(4)
+                .setConfidenceThreshold(0.70f)
                 .build()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -80,13 +70,35 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         imageDetectorObjectLabelObserver()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.info_wiki_bt){
+            val insectName = what_is_that_insect_tv.text
+            insectName.replace(Regex(" ")){
+                when(it.value){
+                    " " -> "_"
+                    else -> it.value
+                }
+            }
+            val openURL = Intent(Intent.ACTION_VIEW)
+            openURL.data = Uri.parse("https://en.wikipedia.org/wiki/$insectName")
+            startActivity(openURL)
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
     private fun startAnalysis(customImageLabelerOptions: CustomImageLabelerOptions) {
         if (allPermissionsGranted()) {
             startCamera()
-            imageAnalysis = ImageAnalysis.Builder() // obiekt analizujący ostatnie klatki
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST) //strategia zatrzymywania ostatniej klatki
+            imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
-            labeler = ImageLabeling.getClient(customImageLabelerOptions)// klient który tworzy opisy
+            labeler = ImageLabeling.getClient(customImageLabelerOptions)
         } else {
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
         }
@@ -94,7 +106,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
 
     private fun imageDetectorObjectLabelObserver() {
         imageDetectorViewModel.objectLabel.observe(this, Observer { text ->
-            text?.let { what_is_that_insect_tv.text = it }   //nasz obserwer z livedata
+            text?.let { what_is_that_insect_tv.text = it }
         })
     }
 
@@ -102,12 +114,12 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         if (!imageDetectorViewModel.isAnalysing) {
             imageAnalysis?.let {
                 imageDetectorViewModel.isAnalysing =
-                    true   // jezeli detektor Nie analizuje to przestaw na analizowanie
+                    true
                 it.setAnalyzer(cameraExecutor, this)
             }
         } else {
-            imageAnalysis?.clearAnalyzer()
-            imageDetectorViewModel.isAnalysing = false // jezeli analizuje to go wyczysc i przestan
+                imageAnalysis?.clearAnalyzer()
+                imageDetectorViewModel.isAnalysing = false
         }
     }
 
@@ -128,7 +140,6 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         }
     }
 
-    //funkcja sprawdzająca czy są dane wszystkie permisiions
     private fun allPermissionsGranted() = permissions.all {
         ContextCompat.checkSelfPermission(
             applicationContext,
@@ -136,7 +147,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun startCamera() { // odpalamy kamere
+    private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener(Runnable {
             cameraProvider = cameraProviderFuture.get()
@@ -167,7 +178,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             val inputImage = InputImage.fromMediaImage(
                 image,
                 imageProxy.imageInfo.rotationDegrees
-            ) //tutaj coś z rotacją a o tym bylo na medium i na oficiajelnej
+            )
 
             labeler.process(inputImage)
                 .addOnSuccessListener { list ->
