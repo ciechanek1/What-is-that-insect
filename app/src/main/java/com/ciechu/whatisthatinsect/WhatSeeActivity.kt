@@ -11,6 +11,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -33,9 +34,9 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     // Tag for the [Log]
     private val TAG = "CameraLabeling"
 
-     /*This is an arbitrary number we are using to keep track of the permission
-     request. Where an app has multiple context for requesting permission,
-     this can help differentiate the different contexts.*/
+    /*This is an arbitrary number we are using to keep track of the permission
+    request. Where an app has multiple context for requesting permission,
+    this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
     private val permissions =
         arrayOf(Manifest.permission.CAMERA)
@@ -76,21 +77,28 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.info_wiki_bt){
+        if (item.itemId == R.id.info_wiki_bt) {
             val insectName = what_is_that_insect_tv.text
-            insectName.replace(Regex(" ")){
-                when(it.value){
+            insectName.replace(Regex(" ")) {
+                when (it.value) {
                     " " -> "_"
                     else -> it.value
                 }
             }
-            val openURL = Intent(Intent.ACTION_VIEW)
-            openURL.data = Uri.parse("https://en.wikipedia.org/wiki/$insectName")
-            startActivity(openURL)
+            if (what_is_that_insect_tv.text != "None" && what_is_that_insect_tv.text != "What is that insect") {
+                val openURL = Intent(Intent.ACTION_VIEW)
+                openURL.data = Uri.parse("https://en.wikipedia.org/wiki/$insectName")
+                startActivity(openURL)
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    "You must find the insect first",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
-
 
     private fun startAnalysis(customImageLabelerOptions: CustomImageLabelerOptions) {
         if (allPermissionsGranted()) {
@@ -118,8 +126,8 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
                 it.setAnalyzer(cameraExecutor, this)
             }
         } else {
-                imageAnalysis?.clearAnalyzer()
-                imageDetectorViewModel.isAnalysing = false
+            imageAnalysis?.clearAnalyzer()
+            imageDetectorViewModel.isAnalysing = false
         }
     }
 
