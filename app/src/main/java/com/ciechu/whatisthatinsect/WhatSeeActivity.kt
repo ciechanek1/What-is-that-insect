@@ -6,6 +6,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
 import android.util.Log
@@ -49,6 +50,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     private var preview: Preview? = null
     private var imageAnalysis: ImageAnalysis? = null
     private var camera: Camera? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,8 +79,8 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val insectName = what_is_that_insect_tv.text
         if (item.itemId == R.id.info_wiki_bt) {
-            val insectName = what_is_that_insect_tv.text
             insectName.replace(Regex(" ")) {
                 when (it.value) {
                     " " -> "_"
@@ -96,6 +98,11 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+        if (item.itemId == R.id.listen_name_bt){
+            val uri = Uri.parse("https://translate.google.com.vn/translate_tts?ie=UTF-8&q=$insectName&tl=en&client=tw-ob")
+            mediaPlayer = MediaPlayer.create(this, uri)
+            mediaPlayer?.start()
         }
         return super.onOptionsItemSelected(item)
     }
