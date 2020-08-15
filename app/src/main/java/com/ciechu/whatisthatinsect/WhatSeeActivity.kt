@@ -2,20 +2,26 @@ package com.ciechu.whatisthatinsect
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.CameraView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.vision.common.InputImage
@@ -24,6 +30,8 @@ import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
+import java.io.File
+import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -37,14 +45,14 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     request. Where an app has multiple context for requesting permission,
     this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
-    private val permissions = arrayOf(Manifest.permission.CAMERA)
+    private val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var labeler: ImageLabeler
 
     private var imageCapture: ImageCapture? = null
-    private var preview: Preview? = null
+    private var preview: Preview? = null // we to zamiast imageView
     private var imageAnalysis: ImageAnalysis? = null
     private var camera: Camera? = null
     private var mediaPlayer: MediaPlayer? = null
@@ -62,6 +70,35 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         } else {
             ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
         }
+
+        take_a_photo_bt.setOnClickListener {
+            imageCapture()
+            Toast.makeText(applicationContext,"photo saved",Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun imageCapture(){
+        // Set desired name and type of captured image
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${what_is_that_insect_tv.text}")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+        }
+
+// Create the output file option to store the captured image in MediaStore
+        val outputFileOptions = ImageCapture.OutputFileOptions
+            .Builder(contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            .build()
+
+// Initiate image capture
+        imageCapture?.takePicture(outputFileOptions, cameraExecutor, object: ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                // Image was successfully saved to `outputFileResults.savedUri`
+            }
+            override fun onError(exception: ImageCaptureException) {
+                val errorType = exception.imageCaptureError
+                Toast.makeText(applicationContext,"$errorType",Toast.LENGTH_LONG).show()
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -98,7 +135,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             mediaPlayer?.start()
         }
         if (item.itemId == R.id.flashlight_bt) {
-            // Write flashlightFun
+            // TODO Write flashlightFun
         }
         return super.onOptionsItemSelected(item)
     }
@@ -122,7 +159,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             .build()
         labeler = ImageLabeling.getClient(customImageLabelerOptions)
 
-        captureImage()
+        analyzingImage()
         imageDetectorObjectLabelObserver()
     }
 
@@ -132,7 +169,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         })
     }
 
-    private fun captureImage() {
+    private fun analyzingImage() {
         if (!imageDetectorViewModel.isAnalysing) {
             imageAnalysis?.let {
                 imageDetectorViewModel.isAnalysing =
@@ -194,6 +231,8 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             )
         }, ContextCompat.getMainExecutor(this))
     }
+
+
 
     @SuppressLint("UnsafeExperimentalUsageError")
     override fun analyze(imageProxy: ImageProxy) {
