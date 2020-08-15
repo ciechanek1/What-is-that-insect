@@ -2,19 +2,27 @@ package com.ciechu.whatisthatinsect
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.camera2.CaptureRequest
 import android.media.MediaPlayer
+import android.net.CaptivePortal
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.Surface
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -23,6 +31,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
+import com.google.android.gms.vision.barcode.Barcode
 import com.google.mlkit.common.model.LocalModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.label.ImageLabeler
@@ -31,6 +40,9 @@ import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
 import java.io.File
+import java.sql.Date
+import java.time.Year
+import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -58,7 +70,6 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     private var mediaPlayer: MediaPlayer? = null
     private var optionMenu: Menu? = null
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -75,30 +86,6 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             imageCapture()
             Toast.makeText(applicationContext,"photo saved",Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun imageCapture(){
-        // Set desired name and type of captured image
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "${what_is_that_insect_tv.text}")
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-        }
-
-// Create the output file option to store the captured image in MediaStore
-        val outputFileOptions = ImageCapture.OutputFileOptions
-            .Builder(contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            .build()
-
-// Initiate image capture
-        imageCapture?.takePicture(outputFileOptions, cameraExecutor, object: ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                // Image was successfully saved to `outputFileResults.savedUri`
-            }
-            override fun onError(exception: ImageCaptureException) {
-                val errorType = exception.imageCaptureError
-                Toast.makeText(applicationContext,"$errorType",Toast.LENGTH_LONG).show()
-            }
-        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -140,6 +127,32 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         return super.onOptionsItemSelected(item)
     }
 
+    private fun imageCapture(){
+
+        // Set desired name and type of captured image
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${what_is_that_insect_tv.text}")
+            put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis() / 1000)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+        }
+
+// Create the output file option to store the captured image in MediaStore
+        val outputFileOptions = ImageCapture.OutputFileOptions
+            .Builder(contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            .build()
+
+// Initiate image capture
+        imageCapture?.takePicture(outputFileOptions, cameraExecutor, object: ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                // Image was successfully saved to `outputFileResults.savedUri`
+            }
+            override fun onError(exception: ImageCaptureException) {
+                val errorType = exception.imageCaptureError
+                Toast.makeText(applicationContext,"$errorType",Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
     private fun startAnalysis() {
 
         val localModel = LocalModel.Builder()
@@ -159,7 +172,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
             .build()
         labeler = ImageLabeling.getClient(customImageLabelerOptions)
 
-        analyzingImage()
+       // analyzingImage()
         imageDetectorObjectLabelObserver()
     }
 
@@ -211,7 +224,11 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         cameraProviderFuture.addListener(Runnable {
             cameraProvider = cameraProviderFuture.get()
             preview = Preview.Builder().build()
-            imageCapture = ImageCapture.Builder().build()
+            imageCapture = ImageCapture.Builder()
+                .setTargetRotation(Surface.ROTATION_0)
+                .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
+                //.setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .build()
 
             val cameraSelector = CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
