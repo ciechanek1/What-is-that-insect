@@ -1,18 +1,17 @@
 package com.ciechu.whatisthatinsect
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Handler
+import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -32,15 +31,13 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
 
     private val imageDetectorViewModel: ImageDetectorViewModel by inject()
 
-    // Tag for the [Log]
     private val TAG = "CameraLabeling"
 
     /*This is an arbitrary number we are using to keep track of the permission
     request. Where an app has multiple context for requesting permission,
     this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
-    private val permissions =
-        arrayOf(Manifest.permission.CAMERA)
+    private val permissions = arrayOf(Manifest.permission.CAMERA)
 
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var cameraExecutor: ExecutorService
@@ -51,30 +48,25 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     private var imageAnalysis: ImageAnalysis? = null
     private var camera: Camera? = null
     private var mediaPlayer: MediaPlayer? = null
+    private var optionMenu: Menu? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val localModel = LocalModel.Builder()
-            .setAssetFilePath("lite-model_aiy_vision_classifier_insects_V1_3.tflite")
-            .build()
-
-        val customImageLabelerOptions =
-            CustomImageLabelerOptions.Builder(localModel)
-                .setMaxResultCount(4)
-                .setConfidenceThreshold(0.70f)
-                .build()
-
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        startAnalysis(customImageLabelerOptions)
-        captureImage()
-        imageDetectorObjectLabelObserver()
+        if (allPermissionsGranted()) {
+            startAnalysis()
+        } else {
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
+        optionMenu = menu
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -99,24 +91,39 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
                 ).show()
             }
         }
-        if (item.itemId == R.id.listen_name_bt){
-            val uri = Uri.parse("https://translate.google.com.vn/translate_tts?ie=UTF-8&q=$insectName&tl=en&client=tw-ob")
+        if (item.itemId == R.id.listen_name_bt) {
+            val uri =
+                Uri.parse("https://translate.google.com.vn/translate_tts?ie=UTF-8&q=$insectName&tl=en&client=tw-ob")
             mediaPlayer = MediaPlayer.create(this, uri)
             mediaPlayer?.start()
+        }
+        if (item.itemId == R.id.flashlight_bt) {
+            // Write flashlightFun
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun startAnalysis(customImageLabelerOptions: CustomImageLabelerOptions) {
-        if (allPermissionsGranted()) {
-            startCamera()
-            imageAnalysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+    private fun startAnalysis() {
+
+        val localModel = LocalModel.Builder()
+            .setAssetFilePath("lite-model_aiy_vision_classifier_insects_V1_3.tflite")
+            .build()
+
+        val customImageLabelerOptions =
+            CustomImageLabelerOptions.Builder(localModel)
+                .setMaxResultCount(4)
+                .setConfidenceThreshold(0.60f)
                 .build()
-            labeler = ImageLabeling.getClient(customImageLabelerOptions)
-        } else {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
-        }
+
+        startCamera()
+
+        imageAnalysis = ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+        labeler = ImageLabeling.getClient(customImageLabelerOptions)
+
+        captureImage()
+        imageDetectorObjectLabelObserver()
     }
 
     private fun imageDetectorObjectLabelObserver() {
@@ -138,6 +145,13 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
         }
     }
 
+    private fun allPermissionsGranted() = permissions.all {
+        ContextCompat.checkSelfPermission(
+            applicationContext,
+            it
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -145,21 +159,14 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
     ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera()
+                startAnalysis()
             } else {
-                /* Toast.makeText(this, "Permission not granted by the user.", Toast.LENGTH_LONG).show()
-                 finish()*/
+                Toast.makeText(this, "Permission not granted by the user.", Toast.LENGTH_LONG)
+                    .show()
+                finish()
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
             }
         }
-    }
-
-    private fun allPermissionsGranted() = permissions.all {
-        ContextCompat.checkSelfPermission(
-            applicationContext,
-            it
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
@@ -180,6 +187,7 @@ class WhatSeeActivity : AppCompatActivity(), ImageAnalysis.Analyzer {
                 imageCapture,
                 imageAnalysis
             )
+
             preview?.setSurfaceProvider(
                 ContextCompat.getMainExecutor(this),
                 viewFinder.createSurfaceProvider()
