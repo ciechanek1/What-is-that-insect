@@ -1,26 +1,43 @@
 package com.ciechu.whatisthatinsect
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.setupWithNavController
-import kotlinx.android.synthetic.main.activity_main.*
+import android.provider.MediaStore
+import android.util.Log
+import android.view.*
+import androidx.fragment.app.Fragment
+import android.widget.Toast
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import com.google.android.gms.vision.label.ImageLabeler
+import com.google.mlkit.common.model.LocalModel
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
+import kotlinx.android.synthetic.main.fragment_camera.*
+import org.koin.android.ext.android.inject
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import androidx.camera.core.ImageCapture.OutputFileOptions.Builder
 
-class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
+class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        bottomNavigationView.setupWithNavController(findNavController(R.id.fragment))
-
-
-        /*private val imageDetectorViewModel: ImageDetectorViewModel by inject()
+    private val imageDetectorViewModel: ImageDetectorViewModel by inject()
 
     private val TAG = "CameraLabeling"
 
-    *//*This is an arbitrary number we are using to keep track of the permission
+    /*This is an arbitrary number we are using to keep track of the permission
     request. Where an app has multiple context for requesting permission,
-    this can help differentiate the different contexts.*//*
+    this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
     private val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
@@ -35,28 +52,36 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
     private var mediaPlayer: MediaPlayer? = null
     private var optionMenu: Menu? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+// albo tu albo w ActivitiCreated
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_camera, container, false)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         if (allPermissionsGranted()) {
             startAnalysis()
         } else {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_PERMISSIONS)
+            ActivityCompat.requestPermissions(requireActivity(), permissions, REQUEST_CODE_PERMISSIONS)
         }
 
         take_a_photo_bt.setOnClickListener {
             imageCapture()
-            Toast.makeText(applicationContext,"photo saved",Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(),"photo saved", Toast.LENGTH_SHORT).show()
         }
+
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu, menu)
         optionMenu = menu
-        return super.onCreateOptionsMenu(menu)
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -74,7 +99,7 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
                 startActivity(openURL)
             } else {
                 Toast.makeText(
-                    applicationContext,
+                    requireContext(),
                     "You must find the insect first",
                     Toast.LENGTH_SHORT
                 ).show()
@@ -83,7 +108,7 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
         if (item.itemId == R.id.listen_name_bt) {
             val uri =
                 Uri.parse("https://translate.google.com.vn/translate_tts?ie=UTF-8&q=$insectName&tl=en&client=tw-ob")
-            mediaPlayer = MediaPlayer.create(this, uri)
+            mediaPlayer = MediaPlayer.create(requireContext(), uri)
             mediaPlayer?.start()
         }
         if (item.itemId == R.id.flashlight_bt) {
@@ -101,19 +126,19 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
         }
 
-// Create the output file option to store the captured image in MediaStore
+        // Create the output file option to store the captured image in MediaStore
         val outputFileOptions = ImageCapture.OutputFileOptions
             .Builder(contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             .build()
 
-// Initiate image capture
+        // Initiate image capture
         imageCapture?.takePicture(outputFileOptions, cameraExecutor, object: ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 // Image was successfully saved to `outputFileResults.savedUri`
             }
             override fun onError(exception: ImageCaptureException) {
                 val errorType = exception.imageCaptureError
-                Toast.makeText(applicationContext,"$errorType",Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(),"$errorType",Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -137,12 +162,12 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
             .build()
         labeler = ImageLabeling.getClient(customImageLabelerOptions)
 
-       // analyzingImage()
+        // analyzingImage()
         imageDetectorObjectLabelObserver()
     }
 
     private fun imageDetectorObjectLabelObserver() {
-        imageDetectorViewModel.objectLabel.observe(this, Observer { text ->
+        imageDetectorViewModel.objectLabel.observe(requireActivity(), Observer { text ->
             text?.let { what_is_that_insect_tv.text = it }
         })
     }
@@ -162,7 +187,7 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
 
     private fun allPermissionsGranted() = permissions.all {
         ContextCompat.checkSelfPermission(
-            applicationContext,
+            requireContext(),
             it
         ) == PackageManager.PERMISSION_GRANTED
     }
@@ -176,7 +201,7 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
             if (allPermissionsGranted()) {
                 startAnalysis()
             } else {
-                Toast.makeText(this, "Permission not granted by the user.", Toast.LENGTH_LONG)
+                Toast.makeText(requireContext(), "Permission not granted by the user.", Toast.LENGTH_LONG)
                     .show()
                 finish()
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -214,8 +239,6 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
         }, ContextCompat.getMainExecutor(this))
     }
 
-
-
     @SuppressLint("UnsafeExperimentalUsageError")
     override fun analyze(imageProxy: ImageProxy) {
         imageProxy.image?.let { image ->
@@ -245,6 +268,5 @@ class WhatSeeActivity : AppCompatActivity()/*, ImageAnalysis.Analyzer*/ {
                     imageProxy.close()
                 }
         }
-    }*/
     }
 }

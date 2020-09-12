@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:icon="@drawable/ic_camera"
+        android:id="@+id/cameraFragment"
+        android:title="Camera" />
+
+    <item
+        android:icon="@drawable/ic_folder"
+        android:id="@+id/capturedInsects"
+        android:title="Captured Insect" />
+
+</menu>
