@@ -1,4 +1,4 @@
-package com.ciechu.whatisthatinsect
+package com.ciechu.whatisthatinsect.viewmodels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

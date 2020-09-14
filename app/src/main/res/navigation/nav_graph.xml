@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.ciechu.whatisthatinsect.CameraFragment"
+        android:name="com.ciechu.whatisthatinsect.ui.fragments.CameraFragment"
         android:label="CameraFragment" >
         <action
             android:id="@+id/action_cameraFragment_to_capturedInsects"
@@ -18,7 +18,7 @@
     </fragment>
     <fragment
         android:id="@+id/capturedInsects"
-        android:name="com.ciechu.whatisthatinsect.CapturedInsects"
+        android:name="com.ciechu.whatisthatinsect.ui.fragments.CapturedInsectsFragment"
         android:label="fragment_captured_insects"
         tools:layout="@layout/fragment_captured_insects" />
 </navigation>
