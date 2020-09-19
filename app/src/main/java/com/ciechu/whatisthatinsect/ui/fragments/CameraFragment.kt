@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -82,6 +83,8 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
         cameraExecutor = Executors.newSingleThreadExecutor()
         resolver = activity?.contentResolver!!
         insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Camera analyzer"
 
         if (allPermissionsGranted()) {
             startAnalysis()

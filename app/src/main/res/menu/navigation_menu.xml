@@ -9,6 +9,6 @@
     <item
         android:icon="@drawable/ic_folder"
         android:id="@+id/capturedInsects"
-        android:title="Captured Insect" />
+        android:title="Captured Insects" />
 
 </menu>

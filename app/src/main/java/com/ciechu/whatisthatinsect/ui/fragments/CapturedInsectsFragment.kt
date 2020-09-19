@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -59,6 +60,8 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         insectViewModel.allInsects.observe(viewLifecycleOwner, Observer {
             updateInsect(it)
         })
+
+        updateTitle()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -81,6 +84,7 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
             insectViewModel.multiSelectMode = !insectViewModel.multiSelectMode
             selectInsect(insect, position)
             updateDeleteButton()
+            updateTitle()
         }
     }
 
@@ -95,6 +99,7 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         insectViewModel.selectedInsects.clear()
         updateDeleteButton()
         insectAdapter.notifyDataSetChanged()
+       updateTitle()
     }
 
     private fun updateDeleteButton() {
@@ -122,5 +127,13 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         insectViewModel.selectedInsects.remove(insect)
         insectAdapter.notifyItemChanged(position)
         if (insectViewModel.selectedInsects.isEmpty()) exitMultiSelectedMode()
+    }
+
+    private fun updateTitle(){
+        if (insectViewModel.multiSelectMode){
+            (requireActivity() as AppCompatActivity).supportActionBar?.title = "Multi-select mode"
+        } else {
+            (requireActivity() as AppCompatActivity).supportActionBar?.title = "My captured insects"
+        }
     }
 }
