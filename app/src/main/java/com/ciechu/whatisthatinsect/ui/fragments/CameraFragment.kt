@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
@@ -17,11 +16,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.ciechu.whatisthatinsect.R
 import com.ciechu.whatisthatinsect.data.Insect
 import com.ciechu.whatisthatinsect.viewmodels.ImageDetectorViewModel
@@ -46,9 +43,6 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
     private val TAG = "CameraLabeling"
 
-    /*This is an arbitrary number we are using to keep track of the permission
-    request. Where an app has multiple context for requesting permission,
-    this can help differentiate the different contexts.*/
     private val REQUEST_CODE_PERMISSIONS = 666
     private val permissions =
         arrayOf(
@@ -61,7 +55,6 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var labeler: ImageLabeler
     private lateinit var resolver: ContentResolver
-   // private lateinit var insectViewModel: InsectViewModel
 
     private var imageCapture: ImageCapture? = null
     private var preview: Preview? = null
@@ -84,7 +77,6 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
         resolver = activity?.contentResolver!!
-       // insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Camera analyzer"
 
@@ -229,7 +221,7 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
                         val dateFormat = SimpleDateFormat("dd/MM/yyyy").format(today.time)
 
                         saveInsectToDatabase(
-                            what_is_that_insect_tv.text.toString(),
+                            what_is_that_insect_tv?.text.toString(),
                             uri.toString(),
                             dateFormat
                         )
