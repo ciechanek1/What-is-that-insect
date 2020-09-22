@@ -14,10 +14,13 @@ import com.ciechu.whatisthatinsect.R
 import com.ciechu.whatisthatinsect.data.Insect
 import com.ciechu.whatisthatinsect.viewmodels.InsectViewModel
 import kotlinx.android.synthetic.main.fragment_captured_insects.*
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class CapturedInsectsFragment : Fragment(), OnItemClickListener {
 
-   private lateinit var insectViewModel: InsectViewModel
+  private val insectViewModel: InsectViewModel by viewModel()
+
+    // private lateinit var insectViewModel: InsectViewModel
    private lateinit var insectAdapter: InsectAdapter
 
     private var optionMenu: Menu? = null
@@ -25,7 +28,7 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
+       // insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
         requireActivity()
             .onBackPressedDispatcher
             .addCallback(this, object : OnBackPressedCallback(true) {
@@ -62,6 +65,7 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         })
 
         updateTitle()
+        updateDeleteButton()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

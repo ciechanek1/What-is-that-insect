@@ -33,6 +33,7 @@ import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
 import kotlinx.android.synthetic.main.fragment_camera.*
 import org.koin.android.ext.android.inject
+import org.koin.android.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -41,6 +42,7 @@ import java.util.concurrent.Executors
 class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
     private val imageDetectorViewModel: ImageDetectorViewModel by inject()
+    private val insectViewModel: InsectViewModel by viewModel()
 
     private val TAG = "CameraLabeling"
 
@@ -59,7 +61,7 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var labeler: ImageLabeler
     private lateinit var resolver: ContentResolver
-    private lateinit var insectViewModel: InsectViewModel
+   // private lateinit var insectViewModel: InsectViewModel
 
     private var imageCapture: ImageCapture? = null
     private var preview: Preview? = null
@@ -82,7 +84,7 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
         resolver = activity?.contentResolver!!
-        insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
+       // insectViewModel = ViewModelProvider(requireActivity())[InsectViewModel::class.java]
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Camera analyzer"
 
@@ -197,7 +199,7 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
     private fun imageCapture() {
 
-        if (what_is_that_insect_tv.text != "None" && what_is_that_insect_tv.text != "What is that insect") {
+       // if (what_is_that_insect_tv.text != "None" && what_is_that_insect_tv.text != "What is that insect") {
 
             // Set desired name and type of captured image
             val contentValues = ContentValues().apply {
@@ -239,14 +241,14 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
                     }
                 })
             Toast.makeText(requireContext(), "photo saved", Toast.LENGTH_SHORT).show()
-           } else {
+           }/* else {
                Toast.makeText(
                    requireContext(),
                    "You must find the insect first",
                    Toast.LENGTH_SHORT
                ).show()
-           }
-    }
+           }*/
+  //  }
 
     private fun startAnalysis() {
 

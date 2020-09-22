@@ -10,7 +10,7 @@ import java.util.ArrayList
 
 class InsectViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repository = Repository(app)
+    private val repository = InsectRepository(app)
     val allInsects = repository.getAllInsects()
 
 // Multi Select

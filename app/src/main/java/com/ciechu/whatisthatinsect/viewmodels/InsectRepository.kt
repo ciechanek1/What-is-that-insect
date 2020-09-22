@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import com.ciechu.whatisthatinsect.data.Insect
 import com.ciechu.whatisthatinsect.db.InsectDatabaseBuilder
 
-class Repository(app: Application) {
+class InsectRepository(app: Application) {
     private val insectDao = InsectDatabaseBuilder.getInstance(app.applicationContext).insectDao()
 
     suspend fun insert(insect: Insect){
