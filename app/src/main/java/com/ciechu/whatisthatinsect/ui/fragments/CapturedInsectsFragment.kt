@@ -2,14 +2,11 @@ package com.ciechu.whatisthatinsect.ui.fragments
 
 import android.os.Bundle
 import android.view.*
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ciechu.whatisthatinsect.FirstInsectDialogFragment
 import com.ciechu.whatisthatinsect.adapters.InsectAdapter
 import com.ciechu.whatisthatinsect.adapters.OnItemClickListener
 import com.ciechu.whatisthatinsect.R
@@ -24,7 +21,6 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
     private lateinit var insectAdapter: InsectAdapter
     private var optionMenu: Menu? = null
     private val requestCode = 11
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,24 +57,30 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         super.onActivityCreated(savedInstanceState)
 
         insectViewModel.allInsects.observe(viewLifecycleOwner, Observer {
-
             updateInsect(it)
-            //firstInsectDialogFragment(it.size)
-
-            if (it.size == 1 && !it[0].hadCongrats) {
-                val firstInsectDialogFragment = FirstInsectDialogFragment()
-                firstInsectDialogFragment.setTargetFragment(this, requestCode)
-                firstInsectDialogFragment.show(parentFragmentManager, "FirstDialogFragment")
-                Toast.makeText(requireContext(), "${it[0].hadCongrats}", Toast.LENGTH_SHORT).show()
-
-            }
-            it.forEach { it.hadCongrats. }
+            insectCongrats(it)
         })
-
-
 
         updateTitle()
         updateDeleteButton()
+    }
+
+    private fun insectCongrats(it: List<Insect>) {
+        if (it.isNotEmpty() && !it[0].hadCongrats) {
+
+            val insectDialogFragment = InsectDialogFragment()
+            insectDialogFragment.setTargetFragment(this, requestCode)
+            insectDialogFragment.show(parentFragmentManager, "InsectDialogFragment")
+
+            val name = it[0].name
+            val date = it[0].date
+            val image = it[0].image
+
+            val insect = Insect(name, image, date, hadCongrats = true).apply {
+                rowId = it[0].rowId
+            }
+            insectViewModel.update(insect)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -94,15 +96,6 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
             updateDeleteButton()
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    private fun firstInsectDialogFragment(size: Int){
-        if (size == 1 && insectViewModel?.insect[0].hadCongrats == false){
-            val firstInsectDialogFragment = FirstInsectDialogFragment()
-            firstInsectDialogFragment.setTargetFragment(this, requestCode)
-            firstInsectDialogFragment.show(parentFragmentManager, "FirstDialogFragment")
-            insectViewModel?.insect[0].hadCongrats == true
-        }
     }
 
     override fun onItemLongClick(insect: Insect, position: Int) {

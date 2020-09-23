@@ -22,6 +22,9 @@ class InsectViewModel(app: Application) : AndroidViewModel(app) {
     fun insert(insect: Insect){
         CoroutineScope(Dispatchers.IO).launch { repository.insert(insect) }
     }
+    fun update(insect: Insect){
+        CoroutineScope(Dispatchers.IO).launch { repository.update(insect) }
+    }
     fun delete(listInsects: List<Insect>){
         CoroutineScope(Dispatchers.IO).launch { repository.delete(listInsects) }
     }

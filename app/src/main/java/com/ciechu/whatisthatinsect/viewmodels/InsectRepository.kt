@@ -11,6 +11,9 @@ class InsectRepository(app: Application) {
     suspend fun insert(insect: Insect){
         insectDao.insert(insect)
     }
+    suspend fun update(insect: Insect){
+        insectDao.update(insect)
+    }
     suspend fun delete(list: List<Insect>){
         insectDao.delete(list)
     }
