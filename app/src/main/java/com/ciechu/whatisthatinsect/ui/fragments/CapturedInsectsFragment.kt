@@ -13,12 +13,14 @@ import com.ciechu.whatisthatinsect.R
 import com.ciechu.whatisthatinsect.data.Insect
 import com.ciechu.whatisthatinsect.viewmodels.InsectViewModel
 import kotlinx.android.synthetic.main.fragment_captured_insects.*
+import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class CapturedInsectsFragment : Fragment(), OnItemClickListener {
 
     private val insectViewModel: InsectViewModel by viewModel()
-    private lateinit var insectAdapter: InsectAdapter
+    private val insectAdapter: InsectAdapter by inject()
+
     private var optionMenu: Menu? = null
     private val requestCode = 11
 
@@ -41,7 +43,8 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recyclerView_captured_insect.layoutManager = LinearLayoutManager(requireContext())
+        initRecyclerView()
+        updateModeUI()
     }
 
     override fun onCreateView(
@@ -57,12 +60,32 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         super.onActivityCreated(savedInstanceState)
 
         insectViewModel.allInsects.observe(viewLifecycleOwner, Observer {
-            updateInsect(it)
+            insectAdapter.setInsect(it)
             insectCongrats(it)
         })
+    }
 
-        updateTitle()
-        updateDeleteButton()
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_insect, menu)
+        optionMenu = menu
+        updateModeUI()
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_delete){
+            insectViewModel.delete(insectViewModel.selectedInsects.toList())
+            exitMultiSelectedMode()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onItemLongClick(insect: Insect, position: Int) {
+        if (!insectViewModel.multiSelectMode){
+            insectViewModel.multiSelectMode = !insectViewModel.multiSelectMode
+            selectInsect(insect, position)
+            updateModeUI()
+        }
     }
 
     private fun insectCongrats(it: List<Insect>) {
@@ -83,46 +106,20 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_insect, menu)
-        optionMenu = menu
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_delete){
-            insectViewModel.delete(insectViewModel.selectedInsects.toList())
-            exitMultiSelectedMode()
-            updateDeleteButton()
+    private fun initRecyclerView(){
+        insectAdapter.setListener(this)
+        recyclerView_captured_insect.apply {
+            this.layoutManager = LinearLayoutManager(requireContext())
+            this.adapter = insectAdapter
         }
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onItemLongClick(insect: Insect, position: Int) {
-        if (!insectViewModel.multiSelectMode){
-            insectViewModel.multiSelectMode = !insectViewModel.multiSelectMode
-            selectInsect(insect, position)
-            updateDeleteButton()
-            updateTitle()
-        }
-    }
-
-    private fun updateInsect(list: List<Insect>){
-        insectAdapter = InsectAdapter(list, this)
-        recyclerView_captured_insect.adapter = insectAdapter
     }
 
     private fun exitMultiSelectedMode() {
         insectViewModel.multiSelectMode = false
         insectViewModel.selectedInsects.forEach{ it.isSelected = false }
         insectViewModel.selectedInsects.clear()
-        updateDeleteButton()
         insectAdapter.notifyDataSetChanged()
-       updateTitle()
-    }
-
-    private fun updateDeleteButton() {
-        optionMenu?.findItem(R.id.menu_delete)?.isVisible = insectViewModel.multiSelectMode
+        updateModeUI()
     }
 
     override fun onItemClick(insect: Insect, position: Int) {
@@ -148,11 +145,13 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
         if (insectViewModel.selectedInsects.isEmpty()) exitMultiSelectedMode()
     }
 
-    private fun updateTitle(){
+    private fun updateModeUI(){
         if (insectViewModel.multiSelectMode){
             (requireActivity() as AppCompatActivity).supportActionBar?.title = "Multi-select mode"
+            optionMenu?.findItem(R.id.menu_delete)?.isVisible = true
         } else {
             (requireActivity() as AppCompatActivity).supportActionBar?.title = "My captured insects"
+            optionMenu?.findItem(R.id.menu_delete)?.isVisible = false
         }
     }
 }

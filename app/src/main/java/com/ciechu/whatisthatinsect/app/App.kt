@@ -1,4 +1,4 @@
-package com.ciechu.whatisthatinsect.di
+package com.ciechu.whatisthatinsect.app
 
 import android.app.Application
 import com.ciechu.whatisthatinsect.di.appModule

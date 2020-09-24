@@ -10,9 +10,25 @@ import com.bumptech.glide.Glide
 import com.ciechu.whatisthatinsect.R
 import com.ciechu.whatisthatinsect.data.Insect
 
-class InsectAdapter(private val insectsList: List<Insect>,
-                    private val listener: OnItemClickListener
-) : RecyclerView.Adapter<InsectAdapter.MyViewHolder>(){
+class InsectAdapter : RecyclerView.Adapter<InsectAdapter.MyViewHolder>(){
+
+    private val insects: MutableList<Insect> by lazy {
+        mutableListOf<Insect>()
+    }
+
+    private lateinit var listener: OnItemClickListener
+
+    fun setInsect(_insects: List<Insect>){
+        if (insects.isNotEmpty()){
+            insects.clear()
+        }
+        insects.addAll(_insects)
+        notifyDataSetChanged()
+    }
+
+    fun setListener(listener: OnItemClickListener){
+        this.listener = listener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -21,20 +37,20 @@ class InsectAdapter(private val insectsList: List<Insect>,
     }
 
     override fun getItemCount(): Int {
-        return insectsList.size
+        return insects.size
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.itemView.setBackgroundColor(Color.WHITE)
     //Change the background color of the selected item
-        if (insectsList[position].isSelected) holder.itemView.setBackgroundColor(Color.LTGRAY)
-        holder.bind(insectsList[position])
+        if (insects[position].isSelected) holder.itemView.setBackgroundColor(Color.LTGRAY)
+        holder.bind(insects[position])
     }
 
    inner class MyViewHolder(view: View): RecyclerView.ViewHolder(view) {
         init {
-            view.setOnClickListener { listener.onItemClick(insectsList[adapterPosition], adapterPosition) }
-            view.setOnLongClickListener { listener.onItemLongClick(insectsList[adapterPosition], adapterPosition)
+            view.setOnClickListener { listener.onItemClick(insects[adapterPosition], adapterPosition) }
+            view.setOnLongClickListener { listener.onItemLongClick(insects[adapterPosition], adapterPosition)
             true
             }
         }
