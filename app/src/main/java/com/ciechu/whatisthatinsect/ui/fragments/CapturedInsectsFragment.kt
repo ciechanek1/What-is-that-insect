@@ -2,15 +2,19 @@ package com.ciechu.whatisthatinsect.ui.fragments
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.util.rangeTo
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ciechu.whatisthatinsect.adapters.InsectAdapter
 import com.ciechu.whatisthatinsect.adapters.OnItemClickListener
 import com.ciechu.whatisthatinsect.R
 import com.ciechu.whatisthatinsect.data.Insect
+import com.ciechu.whatisthatinsect.ui.fragments.dialogFragment.FifthInsectDialogFragment
+import com.ciechu.whatisthatinsect.ui.fragments.dialogFragment.FirstInsectDialogFragment
 import com.ciechu.whatisthatinsect.viewmodels.InsectViewModel
 import kotlinx.android.synthetic.main.fragment_captured_insects.*
 import org.koin.android.ext.android.inject
@@ -89,20 +93,36 @@ class CapturedInsectsFragment : Fragment(), OnItemClickListener {
     }
 
     private fun insectCongrats(it: List<Insect>) {
-        if (it.isNotEmpty() && !it[0].hadCongrats) {
+        when {
+            it.isNotEmpty() && !it[0].hadCongrats -> {
 
-            val insectDialogFragment = InsectDialogFragment()
-            insectDialogFragment.setTargetFragment(this, requestCode)
-            insectDialogFragment.show(parentFragmentManager, "InsectDialogFragment")
+                val insectDialogFragment = FirstInsectDialogFragment()
+                insectDialogFragment.setTargetFragment(this, requestCode)
+                insectDialogFragment.show(parentFragmentManager, "InsectDialogFragment")
 
-            val name = it[0].name
-            val date = it[0].date
-            val image = it[0].image
+                val name = it[0].name
+                val date = it[0].date
+                val image = it[0].image
 
-            val insect = Insect(name, image, date, hadCongrats = true).apply {
-                rowId = it[0].rowId
+                val insect = Insect(name, image, date, hadCongrats = true).apply {
+                    rowId = it[0].rowId
+                }
+                insectViewModel.update(insect)
             }
-            insectViewModel.update(insect)
+            it.size >=5 && !it[5].hadCongrats -> {
+                val insectDialogFragment = FifthInsectDialogFragment()
+                insectDialogFragment.setTargetFragment(this, requestCode)
+                insectDialogFragment.show(parentFragmentManager, "InsectDialogFragment")
+
+                val name = it[5].name
+                val date = it[5].date
+                val image = it[5].image
+
+                val insect = Insect(name, image, date, hadCongrats = true).apply {
+                    rowId = it[5].rowId
+                }
+                insectViewModel.update(insect)
+            }
         }
     }
 

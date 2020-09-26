@@ -191,7 +191,7 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
 
     private fun imageCapture() {
 
-        if (what_is_that_insect_tv.text != "None" && what_is_that_insect_tv.text != "What is that insect") {
+        //if (what_is_that_insect_tv.text != "None" && what_is_that_insect_tv.text != "What is that insect") {
 
             // Set desired name and type of captured image
             val contentValues = ContentValues().apply {
@@ -233,14 +233,14 @@ class CameraFragment : Fragment(), ImageAnalysis.Analyzer {
                     }
                 })
             Toast.makeText(requireContext(), "photo saved", Toast.LENGTH_SHORT).show()
-           } else {
+           } /*else {
                Toast.makeText(
                    requireContext(),
                    "You must find the insect first",
                    Toast.LENGTH_SHORT
                ).show()
            }
-    }
+    }*/
 
     private fun startAnalysis() {
 

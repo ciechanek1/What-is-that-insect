@@ -15,7 +15,7 @@
         app:srcCompat="@mipmap/ic_trophy_foreground" />
 
     <TextView
-        android:id="@+id/dialog_first_insect_TV"
+        android:id="@+id/dialog_fragment_insect_TV"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -23,6 +23,7 @@
         android:text="You found your first insect"
         android:textAlignment="center"
         android:textSize="24sp"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
