@@ -3,6 +3,7 @@ package com.ciechu.whatisthatinsect.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.ciechu.whatisthatinsect.data.Insect
+import com.ciechu.whatisthatinsect.repository.InsectRepositoryImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -10,7 +11,7 @@ import java.util.ArrayList
 
 class InsectViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repository = InsectRepository(app)
+    private val repository = InsectRepositoryImpl(app)
     var allInsects = repository.getAllInsects()
 
     var insect = ArrayList<Insect>()
