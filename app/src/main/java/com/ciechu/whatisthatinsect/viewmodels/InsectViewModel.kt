@@ -13,7 +13,6 @@ class InsectViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = InsectRepositoryImpl(app)
     var allInsects = repository.getAllInsects()
-    var kupka = allInsects.value
 
 // Multi Select
     var multiSelectMode = false
